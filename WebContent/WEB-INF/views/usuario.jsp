@@ -31,7 +31,7 @@
 								
 								<div class="g-recaptcha" data-sitekey="6LeF1DMUAAAAAOHPkf_3suznBg9VTDwsjVFm3O1l"></div>
 								
-								<div class="form-group"  style="margin-top: 3%>
+								<div class="form-group"  style="margin-top: 3%">
 									<div class="row">
 										<div class="col-sm-6 col-sm-offset-3">
 											<input type="submit" name="login-submit" id="login-submit"
