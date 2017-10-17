@@ -5,11 +5,13 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -21,8 +23,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.alura.owasp.dao.UsuarioDao;
 import br.com.alura.owasp.model.Role;
 import br.com.alura.owasp.model.Usuario;
-import br.com.alura.owasp.model.UsuarioDTO;
 import br.com.alura.owasp.retrofit.GoogleWebClient;
+import br.com.alura.owasp.validator.UsuarioValidator;
 
 @Controller
 @Transactional
@@ -33,6 +35,7 @@ public class UsuarioController {
 
 	@InitBinder
 	public void initBinder(WebDataBinder webDataBinder, WebRequest request) {
+		webDataBinder.setValidator(new UsuarioValidator());
 		webDataBinder.setAllowedFields("email", "senha", "nome", "imagem",
 				"nomeImagem");
 	}
@@ -51,10 +54,14 @@ public class UsuarioController {
 
 	@RequestMapping(value = "/registrar", method = RequestMethod.POST)
 	public String registrar(
-			@ModelAttribute("usuarioRegistro") Usuario usuarioRegistro,
+			@Valid @ModelAttribute("usuarioRegistro") Usuario usuarioRegistro,BindingResult result,
 			RedirectAttributes redirect, HttpServletRequest request,
 			Model model, HttpSession session) {
 
+		if(result.hasErrors()){
+			return "usuario";
+		}
+		
 		tratarImagem(usuarioRegistro, request);
 		usuarioRegistro.getRoles().add(new Role("ROLE_USER"));
 

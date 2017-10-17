@@ -1,7 +1,7 @@
 
 <!-- FOOTER -->
 <footer class="">
-    <div class="container">
+	<div class="container">
 		<p class="text-muted">&copy; 2017 Alura Shows, Inc</p>
 	</div>
 </footer>
