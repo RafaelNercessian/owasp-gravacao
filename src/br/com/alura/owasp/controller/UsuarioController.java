@@ -10,14 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.alura.owasp.dao.UsuarioDao;
 import br.com.alura.owasp.model.Role;
 import br.com.alura.owasp.model.Usuario;
+import br.com.alura.owasp.model.UsuarioDTO;
 import br.com.alura.owasp.retrofit.GoogleWebClient;
 
 @Controller
@@ -26,6 +30,12 @@ public class UsuarioController {
 
 	@Autowired
 	private UsuarioDao dao;
+
+	@InitBinder
+	public void initBinder(WebDataBinder webDataBinder, WebRequest request) {
+		webDataBinder.setAllowedFields("email", "senha", "nome", "imagem",
+				"nomeImagem");
+	}
 
 	@RequestMapping("/usuario")
 	public String usuario(Model model) {
@@ -40,9 +50,10 @@ public class UsuarioController {
 	}
 
 	@RequestMapping(value = "/registrar", method = RequestMethod.POST)
-	public String registrar(@ModelAttribute("usuarioRegistro") Usuario usuarioRegistro,
-			RedirectAttributes redirect,
-			HttpServletRequest request, Model model, HttpSession session) {
+	public String registrar(
+			@ModelAttribute("usuarioRegistro") Usuario usuarioRegistro,
+			RedirectAttributes redirect, HttpServletRequest request,
+			Model model, HttpSession session) {
 
 		tratarImagem(usuarioRegistro, request);
 		usuarioRegistro.getRoles().add(new Role("ROLE_USER"));
@@ -53,18 +64,21 @@ public class UsuarioController {
 		return "usuarioLogado";
 	}
 
-	@RequestMapping(value="/login",method=RequestMethod.POST)
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public String login(@ModelAttribute("usuario") Usuario usuario,
-			RedirectAttributes redirect, Model model, HttpSession session, HttpServletRequest request) throws IOException {
-		
+			RedirectAttributes redirect, Model model, HttpSession session,
+			HttpServletRequest request) throws IOException {
+
 		String recaptcha = request.getParameter("g-recaptcha-response");
 
+		//Primeira versão contra Mass assignment
+		//Usuario usuario = new UsuarioDTO().montaUsuario();
 		boolean verifica = new GoogleWebClient().verifica(recaptcha);
-		
-		if(verifica){			
+
+		if (verifica) {
 			return pesquisaUsuario(usuario, redirect, model, session);
 		}
-		
+
 		redirect.addFlashAttribute("mensagem",
 				"Por favor, comprove que você é humano!");
 		return "redirect:/usuario";
@@ -79,7 +93,7 @@ public class UsuarioController {
 			redirect.addFlashAttribute("mensagem", "Usuário não encontrado");
 			return "redirect:/usuario";
 		}
-		
+
 		session.setAttribute("usuario", usuarioRetornado);
 		return "usuarioLogado";
 	}

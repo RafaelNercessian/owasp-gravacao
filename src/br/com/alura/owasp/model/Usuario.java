@@ -32,6 +32,19 @@ public class Usuario implements Serializable {
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "USUARIO_ROLE", joinColumns = { @JoinColumn(name = "EMAIL") }, inverseJoinColumns = { @JoinColumn(name = "NAME") })
 	private List<Role> roles= new ArrayList<>();
+	
+	public Usuario(){
+		
+	}
+
+	public Usuario(String email, String nome, MultipartFile imagem,
+			String senha, String nomeImagem) {
+		this.email=email;
+		this.nome=nome;
+		this.imagem=imagem;
+		this.senha=senha;
+		this.nome=nomeImagem;
+	}
 
 	public String getEmail() {
 		return email;
