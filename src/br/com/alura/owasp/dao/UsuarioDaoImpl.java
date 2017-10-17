@@ -5,6 +5,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.springframework.stereotype.Repository;
 
 import br.com.alura.owasp.model.Usuario;
@@ -14,6 +17,9 @@ import br.com.alura.owasp.util.ConnectionFactory;
 public class UsuarioDaoImpl implements UsuarioDao {
 
 	Connection connection = new ConnectionFactory().getConnection();
+	
+	@PersistenceContext
+	private EntityManager manager;
 
 	public void salva(Usuario usuario) {
 		String query = "insert into USUARIO (email,senha,nome,nomeImagem) values ('"
