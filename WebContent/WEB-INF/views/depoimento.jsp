@@ -4,12 +4,14 @@
 	<form:form action="${s:mvcUrl('DC#enviaMensagem').build()}"
 		commandName="depoimentos" method="post">
 		<div class="form-group">
-			<label for="titulo">Título:</label> 
-			<input type="text"
-				class="form-control" id="titulo" name="titulo" placeholder="Título" required="required">
+			<label for="titulo">Título:</label>
+			<form:errors path="titulo" cssClass="error" />
+			<input type="text" class="form-control" id="titulo" name="titulo"
+				placeholder="Título" required="required">
 		</div>
 		<div class="form-group">
 			<label for="textarea">Mensagem:</label>
+			<form:errors path="mensagem" cssClass="error" />
 			<textarea class="form-control" id="textarea" name="mensagem"
 				placeholder="Depoimento" rows="8" required="required"></textarea>
 		</div>
