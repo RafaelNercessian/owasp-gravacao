@@ -1,30 +1,30 @@
 package br.com.alura.owasp.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLConnection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.alura.owasp.dao.UsuarioDao;
 import br.com.alura.owasp.model.Role;
 import br.com.alura.owasp.model.Usuario;
+import br.com.alura.owasp.model.UsuarioDTO;
 import br.com.alura.owasp.retrofit.GoogleWebClient;
-import br.com.alura.owasp.validator.UsuarioValidator;
 
 @Controller
 @Transactional
@@ -33,11 +33,12 @@ public class UsuarioController {
 	@Autowired
 	private UsuarioDao dao;
 
+	@Autowired
+	private GoogleWebClient cliente;
+
 	@InitBinder
-	public void initBinder(WebDataBinder webDataBinder, WebRequest request) {
-		webDataBinder.setValidator(new UsuarioValidator());
-		webDataBinder.setAllowedFields("email", "senha", "nome", "imagem",
-				"nomeImagem");
+	public void initBinder(WebDataBinder webDataBinder) {
+//		webDataBinder.setAllowedFields("email", "senha", "nome", "nomeImagem");
 	}
 
 	@RequestMapping("/usuario")
@@ -53,22 +54,26 @@ public class UsuarioController {
 	}
 
 	@RequestMapping(value = "/registrar", method = RequestMethod.POST)
-	public String registrar(
-			@Valid @ModelAttribute("usuarioRegistro") Usuario usuarioRegistro,BindingResult result,
+	public String registrar(MultipartFile imagem,
+			@ModelAttribute("usuarioRegistro") UsuarioDTO usuarioRegistroDTO,
 			RedirectAttributes redirect, HttpServletRequest request,
-			Model model, HttpSession session) {
+			Model model, HttpSession session) throws IOException {
 
-		if(result.hasErrors()){
-			return "usuario";
+		Usuario usuarioRegistro = new UsuarioDTO().montaUsuario();
+		
+		boolean imagemEhValida = tratarImagem(imagem, usuarioRegistro, request);
+		
+		if(imagemEhValida){
+			usuarioRegistro.getRoles().add(new Role("ROLE_USER"));
+
+			dao.salva(usuarioRegistro);
+			session.setAttribute("usuario", usuarioRegistro);
+			model.addAttribute("usuario", usuarioRegistro);
+			return "usuarioLogado";
 		}
 		
-		tratarImagem(usuarioRegistro, request);
-		usuarioRegistro.getRoles().add(new Role("ROLE_USER"));
-
-		dao.salva(usuarioRegistro);
-		session.setAttribute("usuario", usuarioRegistro);
-		model.addAttribute("usuario", usuarioRegistro);
-		return "usuarioLogado";
+		redirect.addFlashAttribute("mensagem", "A imagem não é válida!");
+		return "redirect:/usuario";
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
@@ -78,9 +83,9 @@ public class UsuarioController {
 
 		String recaptcha = request.getParameter("g-recaptcha-response");
 
-		//Primeira versão contra Mass assignment
-		//Usuario usuario = new UsuarioDTO().montaUsuario();
-		boolean verifica = new GoogleWebClient().verifica(recaptcha);
+		// Primeira versão contra Mass assignment
+		// Usuario usuario = new UsuarioDTO().montaUsuario();
+		boolean verifica = cliente.verifica(recaptcha);
 
 		if (verifica) {
 			return pesquisaUsuario(usuario, redirect, model, session);
@@ -111,14 +116,22 @@ public class UsuarioController {
 		return "usuario";
 	}
 
-	private void tratarImagem(Usuario usuario, HttpServletRequest request) {
-		usuario.setNomeImagem(usuario.getImagem().getOriginalFilename());
+	private boolean tratarImagem(MultipartFile imagem, Usuario usuario,
+			HttpServletRequest request) throws IOException {
+
+		ByteArrayInputStream bytesImagem = new ByteArrayInputStream(
+				imagem.getBytes());
+		String mime = URLConnection
+				.guessContentTypeFromStream(bytesImagem);
+		if (mime == null) {
+			return false;
+		}
+
+		usuario.setNomeImagem(imagem.getOriginalFilename());
 		File arquivo = new File(request.getServletContext().getRealPath(
 				"/image"), usuario.getNomeImagem());
-		try {
-			usuario.getImagem().transferTo(arquivo);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+
+		imagem.transferTo(arquivo);
+		return true;
 	}
 }

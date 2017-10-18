@@ -7,13 +7,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import org.springframework.web.multipart.MultipartFile;
 
 @Entity
 @Table(name = "USUARIO")
@@ -26,22 +21,18 @@ public class Usuario implements Serializable {
 	private String email;
 	private String senha;
 	private String nome;
-	@Transient
-	private MultipartFile imagem;
 	private String nomeImagem;
 	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "USUARIO_ROLE", joinColumns = { @JoinColumn(name = "EMAIL") }, inverseJoinColumns = { @JoinColumn(name = "NAME") })
 	private List<Role> roles= new ArrayList<>();
 	
 	public Usuario(){
 		
 	}
 
-	public Usuario(String email, String nome, MultipartFile imagem,
+	public Usuario(String email, String nome,
 			String senha, String nomeImagem) {
 		this.email=email;
 		this.nome=nome;
-		this.imagem=imagem;
 		this.senha=senha;
 		this.nome=nomeImagem;
 	}
@@ -78,13 +69,6 @@ public class Usuario implements Serializable {
 		this.nome = nome;
 	}
 
-	public MultipartFile getImagem() {
-		return imagem;
-	}
-
-	public void setImagem(MultipartFile imagem) {
-		this.imagem = imagem;
-	}
 
 	public String getNomeImagem() {
 		return nomeImagem;
