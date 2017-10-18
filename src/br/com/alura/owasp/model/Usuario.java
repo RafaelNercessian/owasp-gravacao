@@ -8,10 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 
 @Entity
-@Table(name = "USUARIO")
 public class Usuario implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -34,7 +32,7 @@ public class Usuario implements Serializable {
 		this.email=email;
 		this.nome=nome;
 		this.senha=senha;
-		this.nome=nomeImagem;
+		this.nomeImagem=nomeImagem;
 	}
 
 	public String getEmail() {

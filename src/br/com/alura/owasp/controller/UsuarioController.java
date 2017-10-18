@@ -23,7 +23,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.alura.owasp.dao.UsuarioDao;
 import br.com.alura.owasp.model.Role;
 import br.com.alura.owasp.model.Usuario;
-import br.com.alura.owasp.model.UsuarioDTO;
 import br.com.alura.owasp.retrofit.GoogleWebClient;
 
 @Controller
@@ -38,7 +37,7 @@ public class UsuarioController {
 
 	@InitBinder
 	public void initBinder(WebDataBinder webDataBinder) {
-//		webDataBinder.setAllowedFields("email", "senha", "nome", "nomeImagem");
+		webDataBinder.setAllowedFields("email", "senha", "nome", "nomeImagem");
 	}
 
 	@RequestMapping("/usuario")
@@ -55,12 +54,13 @@ public class UsuarioController {
 
 	@RequestMapping(value = "/registrar", method = RequestMethod.POST)
 	public String registrar(MultipartFile imagem,
-			@ModelAttribute("usuarioRegistro") UsuarioDTO usuarioRegistroDTO,
+			@ModelAttribute("usuarioRegistro") Usuario usuarioRegistro,
 			RedirectAttributes redirect, HttpServletRequest request,
 			Model model, HttpSession session) throws IOException {
-
-		Usuario usuarioRegistro = new UsuarioDTO().montaUsuario();
 		
+
+		// Primeira versão contra Mass assignment
+		// Usuario usuarioRegistro = usuarioRegistroDTO.montaUsuario();
 		boolean imagemEhValida = tratarImagem(imagem, usuarioRegistro, request);
 		
 		if(imagemEhValida){
@@ -83,8 +83,6 @@ public class UsuarioController {
 
 		String recaptcha = request.getParameter("g-recaptcha-response");
 
-		// Primeira versão contra Mass assignment
-		// Usuario usuario = new UsuarioDTO().montaUsuario();
 		boolean verifica = cliente.verifica(recaptcha);
 
 		if (verifica) {
